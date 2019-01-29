@@ -1,29 +1,35 @@
 from model import *
 import matplotlib.pyplot as plt
 
-with tf.Session() as sess:
-    load(sess)
+saves = sorted(os.listdir(SAVE_PATH))
+for i, f in enumerate(saves):
+    print("{}) {}".format(i, f))
 
-    noise = np.random.normal(0, 1, size=[15, NOISE_SIZE])
-    generated, dsc = sess.run((ngen, gdisc), {gnoise: noise})
+choice = saves[int(input("> "))]
 
-    print(dsc.shape)
+g = GAN(choice, 0, 0)
+g.load()
 
-    for i in range(len(generated)):
-        plt.subplot(5, 6, (i // 6) * 12 + (i % 6) + 1)
-        plt.imshow(generated[i])
-        plt.title("{:.2}".format(dsc[i]))
+noise = np.random.normal(0, 1, size=[15, NOISE_SIZE])
+generated, dsc = g.sess.run((g.ngen, g.gdisc), {g.gnoise: noise})
 
-    plt.show()
+print(dsc.shape)
 
-    random.shuffle(test_images)
+for i in range(len(generated)):
+    plt.subplot(5, 6, (i // 6) * 12 + (i % 6) + 1)
+    plt.imshow(generated[i])
+    plt.title("{:.2}".format(dsc[i]))
 
-    ims = test_images[:15]
-    dsc = sess.run(rdisc, {real: ims})
+plt.show()
 
-    for i in range(len(ims)):
-        plt.subplot(5, 6, (i // 6) * 12 + (i % 6) + 1)
-        plt.imshow(ims[i])
-        plt.title("{:.2}".format(dsc[i]))
+random.shuffle(TEST_IMAGES)
 
-    plt.show()
+ims = TEST_IMAGES[:15]
+dsc = g.sess.run(g.rdisc, {g.real: ims})
+
+for i in range(len(ims)):
+    plt.subplot(5, 6, (i // 6) * 12 + (i % 6) + 1)
+    plt.imshow(ims[i])
+    plt.title("{:.2}".format(dsc[i]))
+
+plt.show()
