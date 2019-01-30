@@ -1,2 +1,0 @@
-model_checkpoint_path: "gen=0.001500_disc=0.001500"
-all_model_checkpoint_paths: "gen=0.001500_disc=0.001500"
