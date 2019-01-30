@@ -240,6 +240,8 @@ if __name__ == "__main__":
                     gan = GAN(name, lr_gen, lr_disc)
                     gan.load()
                     gan.train(epochs=20)
+        saves = sorted(os.listdir(SAVE_PATH))
+
 
     max_epoch = 0
     for f in saves:
