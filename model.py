@@ -7,8 +7,8 @@ import tensorflow as tf
 import numpy as np
 import os
 
-SAVE_PATH = os.path.join("saves", "networks")
-LOG_PATH = os.path.join("saves", "log")
+SAVE_PATH = os.path.join("saves", "local", "networks")
+LOG_PATH = os.path.join("saves", "local", "log")
 
 for f in SAVE_PATH, LOG_PATH:
     if not os.path.isdir(f):
@@ -22,12 +22,22 @@ dataset = tf.keras.datasets.mnist
 
 
 class GAN:
-    def __init__(self, net_id, lr_gen, lr_disc):
-        self.dead = False
+    def __init__(self, net_id, lr_gen=None, lr_disc=None):
         self.graph = tf.Graph()
         self.sess = tf.Session(graph=self.graph)
 
         with self.graph.as_default():
+            if lr_gen == None:
+                self.lr_gen = tf.get_variable(dtype="float32", name="lr_gen", shape=[])
+            else:
+                self.lr_gen = tf.Variable(lr_gen, name="lr_gen")
+
+            if lr_disc == None:
+                self.lr_disc = tf.get_variable(dtype="float32", name="lr_disc", shape=[])
+            else:
+                self.lr_disc = tf.Variable(lr_disc, name="lr_disc")
+
+
             savefolder = os.path.join(SAVE_PATH, net_id)
             if not os.path.isdir(savefolder):
                 os.mkdir(savefolder)
@@ -116,13 +126,13 @@ class GAN:
 
             # Generator optimizer
             with tf.name_scope("gen-opt"):
-                self.goptimizer = tf.train.AdamOptimizer(learning_rate=lr_gen)
+                self.goptimizer = tf.train.AdamOptimizer(learning_rate=self.lr_gen)
                 self.train_g = self.goptimizer.minimize(
                     self.gloss, var_list=[l.weights for l in self.gen_layers])
 
             # Disc optimizer
             with tf.name_scope("disc-opt"):
-                self.doptimizer = tf.train.AdamOptimizer(learning_rate=lr_disc)
+                self.doptimizer = tf.train.AdamOptimizer(learning_rate=self.lr_disc)
                 self.train_d = self.doptimizer.minimize(
                     self.dloss, var_list=[l.weights for l in self.disc_layers])
 
@@ -218,32 +228,35 @@ class GAN:
 
                 self.saver.save(self.sess, self.savepath)
 
+
 if __name__ == "__main__":
     saves = sorted(os.listdir(SAVE_PATH))
 
+    if len(saves) == 0:
+        for lr_gen in [0.0015, 0.002, 0.0025, 0.003]:
+            for lr_disc in [0.0015, 0.002, 0.0025]:
+                for i in range(3):
+                    name = "gen=%.6f_disc=%.6f_%d" % (lr_gen, lr_disc, i)
+                    gan = GAN(name, lr_gen, lr_disc)
+                    gan.load()
+                    gan.train(epochs=20)
+
     max_epoch = 0
     for f in saves:
-        gan = GAN(f, 0, 0)
+        gan = GAN(f)
         gan.load()
         max_epoch = max(gan.sess.run(gan.epoch), max_epoch)
 
     train_to = max_epoch
 
     while True:
-        # for lr_gen in [0.0015, 0.002, 0.0025, 0.003]:
-        #     for lr_disc in [0.0015, 0.002, 0.0025]:
-        #         for i in range(3):
-        #             name = "gen=%.6f_disc=%.6f_%d" % (lr_gen, lr_disc, i)
-        #             gan = GAN(name, lr_gen, lr_disc)
-        #             gan.load()
-        #             gan.train(epochs=20)
 
         train_to += 20
 
-        print("=== Training to {} ==" % train_to)
+        print("=== Training to %d ==" % train_to)
 
         for f in saves:
-            gan = GAN(f, 0, 0)
+            gan = GAN(f)
             gan.load()
             epoch = gan.sess.run(gan.epoch)
             to_train = train_to - epoch
