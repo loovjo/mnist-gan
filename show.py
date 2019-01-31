@@ -7,7 +7,7 @@ for i, f in enumerate(saves):
 
 choice = saves[int(input("> "))]
 
-g = GAN(choice, 0, 0)
+g = GAN(choice)
 g.load()
 
 noise = np.random.normal(0, 1, size=[15, NOISE_SIZE])
