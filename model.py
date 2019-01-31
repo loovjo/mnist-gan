@@ -233,7 +233,7 @@ if __name__ == "__main__":
     saves = sorted(os.listdir(SAVE_PATH))
 
     if len(saves) == 0:
-        for lr_gen in [0.0015, 0.002, 0.0025, 0.003]:
+        for lr_gen in [0.0015, 0.002, 0.0025]:
             for lr_disc in [0.0015, 0.002, 0.0025]:
                 for i in range(3):
                     name = "gen=%.6f_disc=%.6f_%d" % (lr_gen, lr_disc, i)
